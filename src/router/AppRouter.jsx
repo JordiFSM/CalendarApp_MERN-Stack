@@ -2,22 +2,29 @@ import React from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { LoginPage } from '../auth';
 import { CalendarPage } from '../calendar';
+import { useAuthStore } from '../hooks'
+import { useEffect } from 'react';
+import { useMemo } from 'react';
 
 export const AppRouter = () => {
-    
-    const authStatus = 'autenticated';
-
+    const { status, checkAuthToken } = useAuthStore()
+    const isAuthenticated = useMemo(() => status === 'authenticated', [status])
+ 
+    useEffect(() => {
+        checkAuthToken()
+    }, [])
+ 
+    if (status === 'checking') return (<h3>Revisando autenticacion...</h3>)
+ 
     return (
-    <>
         <Routes>
             {
-                ( authStatus === 'not-autenticated')
-                ? <Route path='/auth/*' element={ <LoginPage/> } />
-                :<Route path='/*' element={ <CalendarPage/> } />
+                isAuthenticated
+                    ? (<Route path='/' element={<CalendarPage />} />)
+                    : (<Route path='/' element={<LoginPage />} />)
             }
-            <Route path='/*' element={ <Navigate to='/auth/login'/> } />
-
+ 
+            <Route path='*' element={<Navigate to='/' />} />
         </Routes>
-    </>
-  )
+    )
 }
